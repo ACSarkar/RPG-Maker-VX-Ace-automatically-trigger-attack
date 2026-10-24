@@ -1,0 +1,71 @@
+#Made by Angstrom Sarkar, with significant help from Baz (they wrote
+# all the stuff for Scene_Battle)
+
+#Allows for a skill to automatically activate upon selection.
+
+#If you want a skill to autimatically activate, write "<AUTOSEND>" in its
+# note tags.
+class RPG::Skill < RPG::UsableItem
+  def canAutoSend
+    regexp = /<AUTOSEND>/
+    return self.note.match(regexp)
+  end
+end
+
+#Automatically uses skill on selection, if it has the appropriate tag.
+class Scene_Battle < Scene_Base
+  def autoSend
+    item = BattleManager.actor.input.item
+    return unless item.is_a?(RPG::Skill) && item.canAutoSend
+    @subject = BattleManager.actor
+    execute_action
+    process_action_end#
+    process_event   #Activate any battle events that may have triggered.
+    
+    refresh_status
+    @status_window.unselect
+    @status_window.open
+      
+      
+      #if BattleManager.input_start
+        #@actor_command_window.close
+        #@party_command_window.setup
+      #else
+        #@party_command_window.deactivate
+        
+        #@subject.input.clear      
+        
+        #prior_command #THIS IS WHAT MAKES IT ALL SHIFTED?????
+        #turn_start
+      #end
+
+    
+    #start_actor_command_selection
+    
+    #fix window >_>
+    
+    @subject.input.clear
+    @subject = nil
+  end
+
+  def on_enemy_ok
+    BattleManager.actor.input.target_index = @enemy_window.enemy.index
+    @enemy_window.hide
+    @skill_window.hide
+    @item_window.hide
+    autoSend
+    next_command
+  end
+
+  def on_actor_ok
+    BattleManager.actor.input.target_index = @actor_window.index
+    @actor_window.hide
+    @skill_window.hide
+    @item_window.hide
+    autoSend
+    next_command
+  end
+  
+  #
+  #
+end
