@@ -1,5 +1,6 @@
 #Made by Angstrom Sarkar, with significant help from Baz (they wrote
-# all the stuff for Scene_Battle)
+# almost all the stuff for Scene_Battle, and the visual error fix in
+# Scene_Battle)
 
 #Allows for a skill to automatically activate upon selection.
 
@@ -19,35 +20,19 @@ class Scene_Battle < Scene_Base
     return unless item.is_a?(RPG::Skill) && item.canAutoSend
     @subject = BattleManager.actor
     execute_action
-    process_action_end#
+    process_action_end
     process_event   #Activate any battle events that may have triggered.
-    
     refresh_status
     @status_window.unselect
     @status_window.open
-      
-      
-      #if BattleManager.input_start
-        #@actor_command_window.close
-        #@party_command_window.setup
-      #else
-        #@party_command_window.deactivate
+    @subject.input.clear  
+    subject = nil
         
-        #@subject.input.clear      
-        
-        #prior_command #THIS IS WHAT MAKES IT ALL SHIFTED?????
-        #turn_start
-      #end
-
-    
-    #start_actor_command_selection
-    
-    #fix window >_>
-    
-    @subject.input.clear
-    @subject = nil
+    prior_command #Gives back turn to the unit who used the skill.
   end
 
+  #When selecting an enemy to target with a skill, checks to see if the skill
+  # should automatically activate.
   def on_enemy_ok
     BattleManager.actor.input.target_index = @enemy_window.enemy.index
     @enemy_window.hide
@@ -56,7 +41,9 @@ class Scene_Battle < Scene_Base
     autoSend
     next_command
   end
-
+  
+  #When selecting an ally to target with a skill, checks to see if the skill
+  # should automatically activate.
   def on_actor_ok
     BattleManager.actor.input.target_index = @actor_window.index
     @actor_window.hide
@@ -65,7 +52,13 @@ class Scene_Battle < Scene_Base
     autoSend
     next_command
   end
-  
-  #
-  #
+end
+
+#This code exists to prevent a certain visual error. 
+class Scene_Battle < Scene_Base
+  alias autosend_start_actor_command_selection start_actor_command_selection
+  def start_actor_command_selection
+    @party_command_window.deactivate
+    autosend_start_actor_command_selection
+  end
 end
